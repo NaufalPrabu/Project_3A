@@ -13,8 +13,9 @@ CORS(app)  # Agar React dapat mengakses API Flask
 UPLOAD_FOLDER = 'uploads'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-# Load model SVM
+# Load model dan label encoder
 model = joblib.load("svm_model.pkl")
+label_encoder = joblib.load("label_encoder.pkl")
 
 @app.route('/')
 def index():
@@ -22,7 +23,6 @@ def index():
 
 @app.route('/predict', methods=['POST'])
 def predict():
-    # Pastikan ada file gambar dalam request
     if 'image' not in request.files:
         return jsonify({'error': 'Tidak ada file yang dikirim'}), 400
 
@@ -43,8 +43,13 @@ def predict():
             return jsonify({'error': 'Gagal membaca gambar'}), 500
 
         # Prediksi menggunakan model SVM
-        prediction = model.predict([features])[0]
-        return jsonify({'result': prediction})
+        pred_encoded = model.predict([features])[0]
+        label = label_encoder.inverse_transform([pred_encoded])[0]
+
+        # Langsung kirim hasil prediksi (freshapples atau rottenapples)
+        result = label
+
+        return jsonify({'result': result})
 
     except Exception as e:
         print("ERROR:", str(e))
