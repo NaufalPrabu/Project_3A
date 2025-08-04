@@ -13,6 +13,12 @@ CORS(app)  # Agar React dapat mengakses API Flask
 UPLOAD_FOLDER = 'uploads'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
+# Allowed extensions
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
 # Load model SVM
 model = joblib.load("svm_model.pkl")
 
@@ -30,6 +36,10 @@ def predict():
     
     if file.filename == '':
         return jsonify({'error': 'Nama file kosong'}), 400
+
+    # Cek ekstensi file
+    if not allowed_file(file.filename):
+        return jsonify({'error': 'Format file tidak didukung. Gunakan gambar .jpg atau .png.'}), 400
 
     try:
         # Simpan file ke folder upload
